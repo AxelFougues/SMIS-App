@@ -11,6 +11,7 @@ public class TestSequenceFeature : MonoBehaviour{
 
     public GameObject resultsField;
     public GameObject overlay;
+    public Alert answerAlert;
 
     [Space]
 
@@ -63,13 +64,16 @@ public class TestSequenceFeature : MonoBehaviour{
     private void Start() {
         audioOut = GameObject.FindGameObjectWithTag("AudioOut");
         genie = audioOut.GetComponents<SignalGenerator>()[2];
+        genie.loadPreset(resetPreset);
         refreshSettingsVisuals();
     }
 
     private void OnDisable() {
         StopAllCoroutines();
+        genie.loadPreset(resetPreset);
         overlay.SetActive(false);
         genie.enabled = false;
+        answerAlert.gameObject.SetActive(false);
     }
 
     public void updateSettings() {
@@ -90,6 +94,9 @@ public class TestSequenceFeature : MonoBehaviour{
         varyFreqToggle.isOn = varyFreq;
         varySignalToggle.isOn = varySignal;
     }
+
+    public void answerYes() { answer = true; wait = false; }
+    public void answerNo() { answer = false; wait = false; }
 
     void clearResults() {
         currentTest = new TestResults();
@@ -130,26 +137,31 @@ public class TestSequenceFeature : MonoBehaviour{
     }
 
     public void launch() {
+        Debug.Log("Launching");
         StartCoroutine(doSequences());
     }
 
     IEnumerator doSequences() {
         genie.enabled = true;
+        genie.loadPreset(resetPreset);
         overlay.SetActive(true);
         clearResults();
 
         //Start screen
         wait = true;
+        answerAlert.gameObject.SetActive(true);
+        answerAlert.variableText.text = "Ready?";
         yield return new WaitUntil(() => !wait); //wait for answer
-        //Amp Det
-        if (ampDet) yield return StartCoroutine(amplitudeDetection());
-        //Amp Dis
-        if (ampDis) yield return StartCoroutine(amplitudeDiscrimination());
-        //FreqDis
-        if (freqDis) yield return StartCoroutine(FrequencyDiscrimination());
-        //TempDis
-        if (tempDis) yield return StartCoroutine(TemporalDiscrimination());
-
+        if (answer) {
+            //Amp Det
+            if (ampDet) yield return StartCoroutine(amplitudeDetection());
+            //Amp Dis
+            if (ampDis) yield return StartCoroutine(amplitudeDiscrimination());
+            //FreqDis
+            if (freqDis) yield return StartCoroutine(FrequencyDiscrimination());
+            //TempDis
+            if (tempDis) yield return StartCoroutine(TemporalDiscrimination());
+        }
         writeResults();
         overlay.SetActive(false);
         genie.enabled = false;
@@ -159,6 +171,8 @@ public class TestSequenceFeature : MonoBehaviour{
 
 
     IEnumerator amplitudeDetection() {
+        answerAlert.variableText.text = "Did you feel something?";
+
         genie.loadPreset(resetPreset);
         genie.useSinusAudioWave = true;
         genie.sinusAudioWaveIntensity = 1;
@@ -231,7 +245,7 @@ public class TestSequenceFeature : MonoBehaviour{
         //SEQUENCE
         foreach (float frequency in frequencies) {
             genie.mainFrequency = frequency;
-
+            float threshold = 1;
             foreach (float amp in sequence) {
                 Debug.Log("Amp " + amp + " freq " + frequency);
                 genie.masterVolume = 0;
@@ -240,9 +254,11 @@ public class TestSequenceFeature : MonoBehaviour{
                 yield return new WaitForSecondsRealtime(1); //stimulation
                 genie.masterVolume = 0;
                 yield return new WaitUntil(() => !wait); //wait for answer
-
+                if (answer && amp < threshold) threshold = amp;
             }
-
+            if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(frequency, threshold);
+            if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(frequency, threshold);
+            if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(frequency, threshold);
         }
 
     }

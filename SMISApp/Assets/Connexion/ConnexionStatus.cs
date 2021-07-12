@@ -19,10 +19,31 @@ public class ConnexionStatus : MonoBehaviour{
     float scanTimeout = 20;
 
     void Start(){
+        BluetoothAdapter.OnDeviceDiscovered += onDeviceDiscovered;
+        BluetoothAdapter.OnDevicePicked += onDevicePicked;
+        BluetoothAdapter.OnConnected += onDeviceConnected;
         setSatus("Tap to scan for device");
         refresh();
     }
 
+
+    public void onDeviceDiscovered(BluetoothDevice device, short RSSI) {
+        if (status == "Scanning for device" && device.Name == cubeBTName) {
+            if(device.IsConnected) connexion = Device.CUBE;
+            else device.connect();
+        } 
+    }
+
+    public void onDevicePicked(BluetoothDevice device) {
+        if (status == "Scanning for device" && device.Name == cubeBTName) {
+            if (device.IsConnected) connexion = Device.CUBE;
+            else device.connect();
+        }
+    }
+
+    public void onDeviceConnected(BluetoothDevice device) {
+        if (status == "Scanning for device" && device.Name == cubeBTName) connexion = Device.CUBE;
+    }
 
     IEnumerator scanConnexion() {
         connexion = Device.NONE;
@@ -30,18 +51,18 @@ public class ConnexionStatus : MonoBehaviour{
         setSatus("Scanning for device");
         visual.SetTrigger("Scan");
         float timeout = Time.time;
-
+        if (BluetoothAdapter.isBluetoothEnabled()) {
+            BluetoothAdapter.startDiscovery();
+            //BluetoothAdapter.showDevices();
+        }
         while (connexion == Device.NONE && Time.time - timeout < scanTimeout) {
 
-            // if (DetectHeadset.CanDetect() && DetectHeadset.Detect()) connexion = Device.WIRE;
-            BluetoothDevice[] paired = BluetoothAdapter.getPairedDevices();
-            if(paired != null) foreach (BluetoothDevice pairedDevice in paired) if (pairedDevice!=null && pairedDevice.Name == cubeBTName) connexion = Device.CUBE;
-            // BluetoothDevice device = new BluetoothDevice();
-            //device.Name = cubeBTName;
-            //device.connect();
+            if (DetectHeadset.CanDetect() && DetectHeadset.Detect()) connexion = Device.WIRE;
 
             yield return new WaitForFixedUpdate();
+
         }
+
         switch (connexion) {
             case Device.CUBE:
                 visual.SetTrigger("Cube");

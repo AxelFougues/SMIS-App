@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 913ad6e34352a9d40a2685f958528cbe
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Major Snafu
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: ae3044dedb1e09241a07bcf4567cae06, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
