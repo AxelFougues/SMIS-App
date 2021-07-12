@@ -45,7 +45,7 @@ public class TestSequenceFeature : MonoBehaviour{
     bool varyFreq;
     bool varySignal;
 
-    const float AMP_SUBDIVISION = 0.05f;
+    const float AMP_SUBDIVISION = 0.01f;
     const float AMP_MAX = 0.3f;
     const float AMP_MIN = 0.0f;
 
@@ -103,6 +103,13 @@ public class TestSequenceFeature : MonoBehaviour{
         foreach (Transform child in resultsField.transform) Destroy(child.gameObject);
     }
 
+    void askForAnswer(string question) {
+        answerAlert.gameObject.SetActive(true);
+        answerAlert.variableText.text = question;
+        wait = true;
+        answer = false;
+    }
+
     void writeResultsTitle(string title) {
         GameObject titleObject = Instantiate(resultsTitle, resultsField.transform);
         titleObject.GetComponent<TMP_Text>().text = title;
@@ -118,11 +125,11 @@ public class TestSequenceFeature : MonoBehaviour{
             writeResultsTitle("Amplitude detection: Sine");
             foreach(KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSine) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
         }
-        if (currentTest.amplitudeDetectionThresholdsSine.Count > 0) {
+        if (currentTest.amplitudeDetectionThresholdsSquare.Count > 0) {
             writeResultsTitle("Amplitude detection: Square");
             foreach (KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSquare) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
         }
-        if (currentTest.amplitudeDetectionThresholdsSine.Count > 0) {
+        if (currentTest.amplitudeDetectionThresholdsSaw.Count > 0) {
             writeResultsTitle("Amplitude detection: Saw");
             foreach (KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSaw) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
         }
@@ -130,7 +137,7 @@ public class TestSequenceFeature : MonoBehaviour{
 
     void calcTime() {
         calculatedTime = 0;
-        if (ampDet) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
+        if (ampDet) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION / 2) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
         //for ampDetplusminus : ITERATIONS * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
 
         estimatedTime.text = "Estimated test duration: " + calculatedTime/60 + " minutes";
@@ -148,9 +155,7 @@ public class TestSequenceFeature : MonoBehaviour{
         clearResults();
 
         //Start screen
-        wait = true;
-        answerAlert.gameObject.SetActive(true);
-        answerAlert.variableText.text = "Ready?";
+        askForAnswer("Ready?");
         yield return new WaitUntil(() => !wait); //wait for answer
         if (answer) {
             //Amp Det
@@ -162,6 +167,7 @@ public class TestSequenceFeature : MonoBehaviour{
             //TempDis
             if (tempDis) yield return StartCoroutine(TemporalDiscrimination());
         }
+
         writeResults();
         overlay.SetActive(false);
         genie.enabled = false;
@@ -171,8 +177,6 @@ public class TestSequenceFeature : MonoBehaviour{
 
 
     IEnumerator amplitudeDetection() {
-        answerAlert.variableText.text = "Did you feel something?";
-
         genie.loadPreset(resetPreset);
         genie.useSinusAudioWave = true;
         genie.sinusAudioWaveIntensity = 1;
@@ -247,14 +251,18 @@ public class TestSequenceFeature : MonoBehaviour{
             genie.mainFrequency = frequency;
             float threshold = 1;
             foreach (float amp in sequence) {
-                Debug.Log("Amp " + amp + " freq " + frequency);
-                genie.masterVolume = 0;
-                yield return new WaitForSecondsRealtime(1); //pause
-                genie.masterVolume = amp;
-                yield return new WaitForSecondsRealtime(1); //stimulation
-                genie.masterVolume = 0;
-                yield return new WaitUntil(() => !wait); //wait for answer
-                if (answer && amp < threshold) threshold = amp;
+                if (amp < threshold) {
+                    Debug.Log("Amp " + amp + " freq " + frequency);
+                    genie.masterVolume = 0;
+                    yield return new WaitForSecondsRealtime(1); //pause
+                    genie.masterVolume = amp;
+                    yield return new WaitForSecondsRealtime(1); //stimulation
+                    genie.masterVolume = 0;
+
+                    askForAnswer("Did you feel something?");
+                    yield return new WaitUntil(() => !wait); //wait for answer
+                    if (answer && amp < threshold) threshold = amp;
+                }
             }
             if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(frequency, threshold);
             if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(frequency, threshold);

@@ -66,11 +66,11 @@ public class ConnexionStatus : MonoBehaviour{
         switch (connexion) {
             case Device.CUBE:
                 visual.SetTrigger("Cube");
-                setSatus("SMIS CUBE");
+                setSatus("Tap to refresh");
                 break;
             case Device.WIRE:
                 visual.SetTrigger("Wire");
-                setSatus("SMIS WIRE");
+                setSatus("Tap to refresh");
                 break;
             case Device.NONE:
                 visual.SetTrigger("Idle");
@@ -82,16 +82,20 @@ public class ConnexionStatus : MonoBehaviour{
     }
 
     public void refresh() {
-        StartCoroutine("scanConnexion");
+        if(status != "Scanning for device") StartCoroutine("scanConnexion");
     }
 
     public void setCube() {
         connexion = Device.CUBE;
+        visual.SetTrigger("Cube");
+        setSatus("Tap to refresh");
         Events.current.connexionStatusChanged();
     }
 
     public void setWire() {
         connexion = Device.WIRE;
+        visual.SetTrigger("Wire");
+        setSatus("Tap to refresh");
         Events.current.connexionStatusChanged();
     }
 

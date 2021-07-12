@@ -3,8 +3,8 @@
     "m_SelectedPackage": {
         "deviceId": "ZY227F7D3S",
         "name": "com.DefaultCompany.com.unity.template.mobile2D",
-        "processId": 3805,
-        "exited": true
+        "processId": 24782,
+        "exited": false
     },
     "m_SelectedPriority": 0,
     "m_KnownPackagesForSerialization": [
@@ -91,6 +91,18 @@
             "name": "com.DefaultCompany.com.unity.template.mobile2D",
             "processId": 3805,
             "exited": true
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.DefaultCompany.com.unity.template.mobile2D",
+            "processId": 21547,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.DefaultCompany.com.unity.template.mobile2D",
+            "processId": 24782,
+            "exited": false
         }
     ],
     "m_Tags": {

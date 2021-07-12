@@ -24,15 +24,18 @@ public class FeatureButton : MonoBehaviour{
         menu = FindObjectOfType(typeof(MenuBehaviour)) as MenuBehaviour;
         Events.current.onConnexionStatusChanged += onConnexionStatusChanged;
         Events.current.onThemeChanged += onThemeChanged;
+        Events.current.onSettingsChanged += onSettingsChanged;
         updateAvailability();
     }
 
     public void onClick() {
         switch (availability) {
             case "prefered":
+                Events.current.featureSelected();
                 feature.SetActive(true);
                 break;
             case "allowed":
+                Events.current.featureSelected();
                 feature.SetActive(true);
                 displayAllowedPopup();
                 break;
@@ -46,25 +49,30 @@ public class FeatureButton : MonoBehaviour{
         menu.menuOut();
     }
 
-    private void onConnexionStatusChanged() {
+    public void onConnexionStatusChanged() {
         updateAvailability();
     }
 
     private void updateAvailability() {
         if (feature != null) {
-            if (!Global.current.settings.deviceCompatibilityWarning && prefered.Contains(connexionStatus.connexion)) {
+
+            if (!Global.current.settings.bypassDeviceCompatibilityWarning && prefered.Contains(connexionStatus.connexion)) {
                 availability = "prefered";
             } else if (allowed.Contains(connexionStatus.connexion)) {
                 availability = "allowed";
-            }
-            else availability = "denied";
+            }else availability = "denied";
+
+            if(Global.current.settings.bypassDeviceCompatibilityWarning) availability = "prefered";
+
         } else {
+
             availability = "comingSoon";
+
         }
         onThemeChanged();
     }
 
-    private void onThemeChanged() {
+    public void onThemeChanged() {
         switch (availability) {
             case "prefered":
                 GetComponentInChildren<TMP_Text>().color = Global.current.theme.text;
@@ -80,6 +88,10 @@ public class FeatureButton : MonoBehaviour{
                 break;
         }
         GetComponent<Image>().color = Global.current.theme.foreground;
+    }
+
+    public void onSettingsChanged() {
+        updateAvailability();
     }
 
     public void displayAllowedPopup() {

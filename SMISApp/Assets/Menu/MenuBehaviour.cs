@@ -22,5 +22,9 @@ public class MenuBehaviour : MonoBehaviour{
         animator.SetTrigger("menuOut");
         retractButton.gameObject.SetActive(false);
     }
+
+    public void closeAll() {
+        Events.current.featureSelected();
+    }
     
 }

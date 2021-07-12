@@ -5,7 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Settings")]
 public class Settings : ScriptableObject{
 
-    public bool deviceCompatibilityWarning = true;
+    public bool bypassDeviceCompatibilityWarning = true;
 
     public float maxFrequency = 400f;
 
