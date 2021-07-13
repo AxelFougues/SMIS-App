@@ -19,26 +19,9 @@ public class ConnexionStatus : MonoBehaviour{
     float scanTimeout = 20;
 
     void Start(){
-        BluetoothAdapter.OnDeviceDiscovered += onDeviceDiscovered;
-        BluetoothAdapter.OnDevicePicked += onDevicePicked;
         BluetoothAdapter.OnConnected += onDeviceConnected;
         setSatus("Tap to scan for device");
         refresh();
-    }
-
-
-    public void onDeviceDiscovered(BluetoothDevice device, short RSSI) {
-        if (status == "Scanning for device" && device.Name == cubeBTName) {
-            if(device.IsConnected) connexion = Device.CUBE;
-            else device.connect();
-        } 
-    }
-
-    public void onDevicePicked(BluetoothDevice device) {
-        if (status == "Scanning for device" && device.Name == cubeBTName) {
-            if (device.IsConnected) connexion = Device.CUBE;
-            else device.connect();
-        }
     }
 
     public void onDeviceConnected(BluetoothDevice device) {
@@ -52,14 +35,18 @@ public class ConnexionStatus : MonoBehaviour{
         visual.SetTrigger("Scan");
         float timeout = Time.time;
         if (BluetoothAdapter.isBluetoothEnabled()) {
-            BluetoothAdapter.startDiscovery();
-            //BluetoothAdapter.showDevices();
+            foreach (BluetoothDevice device in BluetoothAdapter.getPairedDevices()) {
+                if (device.Name == cubeBTName) {
+                    device.connect();
+                }
+            }
         }
+
         while (connexion == Device.NONE && Time.time - timeout < scanTimeout) {
 
             if (DetectHeadset.CanDetect() && DetectHeadset.Detect()) connexion = Device.WIRE;
 
-            yield return new WaitForFixedUpdate();
+                yield return new WaitForFixedUpdate();
 
         }
 
