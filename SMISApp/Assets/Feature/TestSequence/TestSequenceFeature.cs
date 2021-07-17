@@ -48,6 +48,7 @@ public class TestSequenceFeature : MonoBehaviour{
     const float AMP_SUBDIVISION = 0.01f;
     const float AMP_MAX = 0.3f;
     const float AMP_MIN = 0.0f;
+    const float DEFAULT_AMP = 0.5f;
 
     const float FREQ_MIN = 10;
     const float FREQ_MAX = 250;
@@ -123,22 +124,23 @@ public class TestSequenceFeature : MonoBehaviour{
     void writeResults() {
         if (currentTest.amplitudeDetectionThresholdsSine.Count > 0) {
             writeResultsTitle("Amplitude detection: Sine");
-            foreach(KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSine) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
+            //foreach(KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSine) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
         }
         if (currentTest.amplitudeDetectionThresholdsSquare.Count > 0) {
             writeResultsTitle("Amplitude detection: Square");
-            foreach (KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSquare) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
+            //foreach (KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSquare) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
         }
         if (currentTest.amplitudeDetectionThresholdsSaw.Count > 0) {
             writeResultsTitle("Amplitude detection: Saw");
-            foreach (KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSaw) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
+            //foreach (KeyValuePair<float, float> pair in currentTest.amplitudeDetectionThresholdsSaw) writeResultsLine("Threshold @ " + pair.Key + " Hz = " + pair.Value);
         }
     }
 
     void calcTime() {
         calculatedTime = 0;
-        if (ampDet) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION / 2) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
+        if (ampDet) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 4;
         //for ampDetplusminus : ITERATIONS * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
+        if (ampDis) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 4;
 
         estimatedTime.text = "Estimated test duration: " + calculatedTime/60 + " minutes";
     }
@@ -197,40 +199,6 @@ public class TestSequenceFeature : MonoBehaviour{
             yield return StartCoroutine(amplitudeDetectionSequence());
         }
     }
-    IEnumerator amplitudeDetectionSequencePlusMinus() {
-        System.Random rand = new System.Random();
-        //frequencies
-        List<float> frequencies = new List<float>();
-        if (varyFreq) for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
-        else frequencies.Add(DEFAULT_FREQUENCY);
-        frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
-        //PREPING GENERATOR
-
-        //SEQUENCE
-        foreach (float frequency in frequencies) {
-            genie.mainFrequency = frequency;
-            float amp = AMP_MIN + (AMP_MAX-AMP_MIN / 2f);
-            float currentMin = AMP_MIN, currentMax = AMP_MAX;
-
-            for(int itteration = 0; itteration < ITERATIONS; itteration ++){
-                genie.masterVolume = 0;
-                yield return new WaitForSecondsRealtime(1); //pause
-                genie.masterVolume = amp;
-                yield return new WaitForSecondsRealtime(1); //stimulation
-                genie.masterVolume = 0;
-                wait = true;
-                yield return new WaitUntil(() => !wait); //wait for answer
-                if (answer == true) currentMax = amp;
-                else currentMin = amp;
-                amp = currentMin + (currentMax - currentMin / 2);
-            }
-            //saving threshold
-            if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(frequency, amp);
-            if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(frequency, amp);
-            if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(frequency, amp);
-        }
-
-    }
     IEnumerator amplitudeDetectionSequence() {
         //PREPING SEQUENCE
         Debug.Log("Prepping sequence");
@@ -249,24 +217,29 @@ public class TestSequenceFeature : MonoBehaviour{
         //SEQUENCE
         foreach (float frequency in frequencies) {
             genie.mainFrequency = frequency;
-            float threshold = 1;
             foreach (float amp in sequence) {
-                if (amp < threshold) {
-                    Debug.Log("Amp " + amp + " freq " + frequency);
-                    genie.masterVolume = 0;
-                    yield return new WaitForSecondsRealtime(1); //pause
-                    genie.masterVolume = amp;
-                    yield return new WaitForSecondsRealtime(1); //stimulation
-                    genie.masterVolume = 0;
+                bool first = Random.Range(0, 1) > 0.5f;
 
-                    askForAnswer("Did you feel something?");
-                    yield return new WaitUntil(() => !wait); //wait for answer
-                    if (answer && amp < threshold) threshold = amp;
-                }
+                genie.masterVolume = 0;
+                yield return new WaitForSecondsRealtime(0.5f);//pause
+
+                genie.masterVolume = first? amp : 0;
+                yield return new WaitForSecondsRealtime(1); //T1
+
+                genie.masterVolume = 0;
+                yield return new WaitForSecondsRealtime(0.5f);//pause
+
+                genie.masterVolume = first ? 0 : amp ;
+                yield return new WaitForSecondsRealtime(1); //T2
+
+                genie.masterVolume = 0;
+                askForAnswer("Which interval had the highest amplitude?");
+                yield return new WaitUntil(() => !wait); //wait for answer
+                //save
+                if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(new AmpDetSet(frequency, amp, answer == first));
+                if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(new AmpDetSet(frequency, amp, answer == first));
+                if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(new AmpDetSet(frequency, amp, answer == first));
             }
-            if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(frequency, threshold);
-            if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(frequency, threshold);
-            if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(frequency, threshold);
         }
 
     }
@@ -309,20 +282,30 @@ public class TestSequenceFeature : MonoBehaviour{
         //SEQUENCE
         foreach (float frequency in frequencies) {
             genie.mainFrequency = frequency;
-
             foreach (float amp in sequence) {
-                Debug.Log("Amp " + amp + " freq " + frequency);
-                genie.masterVolume = 0;
-                yield return new WaitForSecondsRealtime(1); //pause
-                genie.masterVolume = amp;
-                yield return new WaitForSecondsRealtime(1); //stimulation
-                genie.masterVolume = 0;
-                yield return new WaitUntil(() => !wait); //wait for answer
-                
-            }
-            
-        }
+                bool first = Random.Range(0, 1) > 0.5f;
 
+                genie.masterVolume = 0;
+                yield return new WaitForSecondsRealtime(0.5f);//pause
+
+                genie.masterVolume = first ? amp : DEFAULT_AMP;
+                yield return new WaitForSecondsRealtime(1); //T1
+
+                genie.masterVolume = 0;
+                yield return new WaitForSecondsRealtime(0.5f);//pause
+
+                genie.masterVolume = first ? DEFAULT_AMP : amp;
+                yield return new WaitForSecondsRealtime(1); //T2
+
+                genie.masterVolume = 0;
+                askForAnswer("Which interval had the highest amplitude?");
+                yield return new WaitUntil(() => !wait); //wait for answer
+                //save
+                if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(new AmpDetSet(frequency, amp, amp > DEFAULT_AMP && answer == first));
+                if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(new AmpDetSet(frequency, amp, amp > DEFAULT_AMP && answer == first));
+                if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(new AmpDetSet(frequency, amp, amp > DEFAULT_AMP && answer == first));
+            }
+        }
     }
 
     IEnumerator FrequencyDiscrimination() {
@@ -351,9 +334,9 @@ public class TestResults {
     public Placement placement;
     public int timeInMonths;
 
-    public Dictionary<float, float> amplitudeDetectionThresholdsSine = new Dictionary<float, float>();
-    public Dictionary<float, float> amplitudeDetectionThresholdsSquare = new Dictionary<float, float>();
-    public Dictionary<float, float> amplitudeDetectionThresholdsSaw = new Dictionary<float, float>();
+    public List<AmpDetSet> amplitudeDetectionThresholdsSine = new List<AmpDetSet>();
+    public List<AmpDetSet> amplitudeDetectionThresholdsSquare = new List<AmpDetSet>();
+    public List<AmpDetSet> amplitudeDetectionThresholdsSaw = new List<AmpDetSet>();
 }
 
 public class AmpDetSet {
