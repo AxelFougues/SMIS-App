@@ -11,7 +11,8 @@ public class TestSequenceFeature : MonoBehaviour{
 
     public GameObject resultsField;
     public GameObject overlay;
-    public Alert answerAlert;
+    public Alert answerAlertFirstSecond;
+    public Alert answerAlertYesNo;
 
     [Space]
 
@@ -33,7 +34,7 @@ public class TestSequenceFeature : MonoBehaviour{
     public TMP_Text estimatedTime;
 
     public bool wait = true;
-    public bool answer = false;
+    public string answer = "";
 
     float calculatedTime = 0;
 
@@ -45,15 +46,25 @@ public class TestSequenceFeature : MonoBehaviour{
     bool varyFreq;
     bool varySignal;
 
-    const float AMP_SUBDIVISION = 0.01f;
+    const float AMP_SUBDIVISION = 0.05f;
     const float AMP_MAX = 0.3f;
     const float AMP_MIN = 0.0f;
-    const float DEFAULT_AMP = 0.5f;
+    const float DEFAULT_AMP = 0.15f;
 
-    const float FREQ_MIN = 10;
+    const float FREQ_MIN = 30;
     const float FREQ_MAX = 250;
     const float FREQ_SUBDIVISION = 10;
     const float DEFAULT_FREQUENCY = 100;
+
+    const float AMP_STEP_MIN = 0.1f;
+    const float AMP_STEP_MAX = 0.3f;
+    const float AMP_STEP_SUBDIVISION = 0.1f;
+
+    const float FREQ_STEP_MIN = 1;
+    const float FREQ_STEP_MAX = 51;
+    const float FREQ_STEP_SUBDIVISION = 5;
+
+    const float TONE_FREQ = 300;
 
     const float ITERATIONS = 10;
 
@@ -74,7 +85,7 @@ public class TestSequenceFeature : MonoBehaviour{
         genie.loadPreset(resetPreset);
         overlay.SetActive(false);
         genie.enabled = false;
-        answerAlert.gameObject.SetActive(false);
+        answerAlertFirstSecond.gameObject.SetActive(false);
     }
 
     public void updateSettings() {
@@ -96,19 +107,34 @@ public class TestSequenceFeature : MonoBehaviour{
         varySignalToggle.isOn = varySignal;
     }
 
-    public void answerYes() { answer = true; wait = false; }
-    public void answerNo() { answer = false; wait = false; }
+    public void answerFirst() { answer = "First"; wait = false; }
+    public void answerSecond() { answer = "Second"; wait = false; }
+    public void answerNeither() { answer = "Neither"; wait = false; }
+    public void answerYes() { answer = "Yes"; wait = false; }
+    public void answerNo() { answer = "No"; wait = false; }
 
     void clearResults() {
         currentTest = new TestResults();
         foreach (Transform child in resultsField.transform) Destroy(child.gameObject);
     }
 
-    void askForAnswer(string question) {
-        answerAlert.gameObject.SetActive(true);
-        answerAlert.variableText.text = question;
+    void askForAnswerFirstSecond(string question) {
+        answerAlertFirstSecond.gameObject.SetActive(true);
+        answerAlertFirstSecond.variableText.text = question;
         wait = true;
-        answer = false;
+        answer = "";
+    }
+
+    void askForAnswerYesNo(string question) {
+        answerAlertYesNo.gameObject.SetActive(true);
+        answerAlertYesNo.variableText.text = question;
+        wait = true;
+        answer = "";
+    }
+
+    bool answerCheck(bool correct) {
+        if (answer == "Neither") return false;
+        return (answer == "First") == correct;
     }
 
     void writeResultsTitle(string title) {
@@ -140,14 +166,14 @@ public class TestSequenceFeature : MonoBehaviour{
         calculatedTime = 0;
         if (ampDet) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 4;
         //for ampDetplusminus : ITERATIONS * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
-        if (ampDis) calculatedTime += ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 4;
-
-        estimatedTime.text = "Estimated test duration: " + calculatedTime/60 + " minutes";
+        if (ampDis) calculatedTime += ((AMP_STEP_MAX - AMP_STEP_MIN) / AMP_STEP_SUBDIVISION) * ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 4;
+        if (freqDis) calculatedTime += ((FREQ_STEP_MAX - FREQ_STEP_MIN) / FREQ_STEP_SUBDIVISION) * ((FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION) * (varySignal ? 3 : 1) * 4;
+        estimatedTime.text = "Estimated test duration: " + Mathf.RoundToInt(calculatedTime/60) + " minutes";
     }
 
     public void launch() {
         Debug.Log("Launching");
-        StartCoroutine(doSequences());
+        if(ampDet || ampDis || freqDis ||tempDis) StartCoroutine(doSequences());
     }
 
     IEnumerator doSequences() {
@@ -157,9 +183,9 @@ public class TestSequenceFeature : MonoBehaviour{
         clearResults();
 
         //Start screen
-        askForAnswer("Ready?");
+        askForAnswerYesNo("Ready?");
         yield return new WaitUntil(() => !wait); //wait for answer
-        if (answer) {
+        if (answer == "Yes") {
             //Amp Det
             if (ampDet) yield return StartCoroutine(amplitudeDetection());
             //Amp Dis
@@ -203,48 +229,46 @@ public class TestSequenceFeature : MonoBehaviour{
         //PREPING SEQUENCE
         Debug.Log("Prepping sequence");
         //Amp
-        List<float> sequence = new List<float>();
-        for (float amplitude = 0; amplitude <= AMP_MAX; amplitude += AMP_SUBDIVISION) sequence.Add(amplitude); //generating test values
+        List<float> amps = new List<float>();
+        for (float amplitude = 0; amplitude <= AMP_MAX; amplitude += AMP_SUBDIVISION) amps.Add(amplitude); //generating test values
         System.Random rand = new System.Random();
-        sequence = sequence.OrderBy(x => rand.Next()).ToList(); //randomizing order
+        amps = amps.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //frequencies
         List<float> frequencies = new List<float>();
         if (varyFreq) for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
-        else frequencies.Add(200);
+        else frequencies.Add(DEFAULT_FREQUENCY);
         frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //PREPING GENERATOR
 
         //SEQUENCE
         foreach (float frequency in frequencies) {
             genie.mainFrequency = frequency;
-            foreach (float amp in sequence) {
-                bool first = Random.Range(0, 1) > 0.5f;
+            foreach (float amp in amps) {
+                bool order = Random.Range(0f, 1f) > 0.5f;
 
                 genie.masterVolume = 0;
                 yield return new WaitForSecondsRealtime(0.5f);//pause
 
-                genie.masterVolume = first? amp : 0;
+                genie.masterVolume = order? amp : 0;
                 yield return new WaitForSecondsRealtime(1); //T1
 
                 genie.masterVolume = 0;
                 yield return new WaitForSecondsRealtime(0.5f);//pause
 
-                genie.masterVolume = first ? 0 : amp ;
+                genie.masterVolume = order ? 0 : amp ;
                 yield return new WaitForSecondsRealtime(1); //T2
 
                 genie.masterVolume = 0;
-                askForAnswer("Which interval had the highest amplitude?");
+                askForAnswerFirstSecond("Which interval had the highest amplitude?");
                 yield return new WaitUntil(() => !wait); //wait for answer
                 //save
-                if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(new AmpDetSet(frequency, amp, answer == first));
-                if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(new AmpDetSet(frequency, amp, answer == first));
-                if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(new AmpDetSet(frequency, amp, answer == first));
+                if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(new AmpDetSet(frequency, amp, answerCheck(order)));
+                if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(new AmpDetSet(frequency, amp, answerCheck(order)));
+                if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(new AmpDetSet(frequency, amp, answerCheck(order)));
             }
         }
 
     }
-
-
 
     IEnumerator amplitudeDiscrimination() {
         genie.loadPreset(resetPreset);
@@ -267,53 +291,113 @@ public class TestSequenceFeature : MonoBehaviour{
     IEnumerator amplitudeDiscriminationSequence() {
         //PREPING SEQUENCE
         Debug.Log("Prepping sequence");
-        //Amp
-        List<float> sequence = new List<float>();
-        for (float amplitude = 0; amplitude <= AMP_MAX; amplitude += AMP_SUBDIVISION) sequence.Add(amplitude); //generating test values
         System.Random rand = new System.Random();
-        sequence = sequence.OrderBy(x => rand.Next()).ToList(); //randomizing order
+        //Amp
+        List<float> amps = new List<float>();
+        for (float amplitude = 0; amplitude <= AMP_MAX; amplitude += AMP_SUBDIVISION) amps.Add(amplitude); //generating test values
+        amps = amps.OrderBy(x => rand.Next()).ToList(); //randomizing order
+        //step
+        List<float> steps = new List<float>();
+        for (float step = AMP_STEP_MIN; step <= AMP_STEP_MAX; step += AMP_STEP_SUBDIVISION) amps.Add(step); //generating test values
+        amps = amps.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //frequencies
         List<float> frequencies = new List<float>();
         if (varyFreq) for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
-        else frequencies.Add(200);
+        else frequencies.Add(DEFAULT_FREQUENCY);
         frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
-        //PREPING GENERATOR
 
         //SEQUENCE
         foreach (float frequency in frequencies) {
             genie.mainFrequency = frequency;
-            foreach (float amp in sequence) {
-                bool first = Random.Range(0, 1) > 0.5f;
+            foreach (float amp in amps) {
+                foreach (float step in steps) {
+                    bool order = Random.Range(0f, 1f) > 0.5f;
 
-                genie.masterVolume = 0;
-                yield return new WaitForSecondsRealtime(0.5f);//pause
+                    genie.masterVolume = 0;
+                    yield return new WaitForSecondsRealtime(0.5f);//pause
 
-                genie.masterVolume = first ? amp : DEFAULT_AMP;
-                yield return new WaitForSecondsRealtime(1); //T1
+                    genie.masterVolume = order ? amp + step : amp;
+                    yield return new WaitForSecondsRealtime(1); //T1
 
-                genie.masterVolume = 0;
-                yield return new WaitForSecondsRealtime(0.5f);//pause
+                    genie.masterVolume = 0;
+                    yield return new WaitForSecondsRealtime(0.5f);//pause
 
-                genie.masterVolume = first ? DEFAULT_AMP : amp;
-                yield return new WaitForSecondsRealtime(1); //T2
+                    genie.masterVolume = order ? amp : amp + step;
+                    yield return new WaitForSecondsRealtime(1); //T2
 
-                genie.masterVolume = 0;
-                askForAnswer("Which interval had the highest amplitude?");
-                yield return new WaitUntil(() => !wait); //wait for answer
-                //save
-                if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(new AmpDetSet(frequency, amp, amp > DEFAULT_AMP && answer == first));
-                if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(new AmpDetSet(frequency, amp, amp > DEFAULT_AMP && answer == first));
-                if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(new AmpDetSet(frequency, amp, amp > DEFAULT_AMP && answer == first));
+                    genie.masterVolume = 0;
+                    askForAnswerFirstSecond("Which interval had the highest amplitude?");
+                    yield return new WaitUntil(() => !wait); //wait for answer
+                                                             //save
+                    if (genie.useSinusAudioWave) currentTest.amplitudeDetectionThresholdsSine.Add(new AmpDetSet(frequency, amp, answerCheck(order)));
+                    if (genie.useSquareAudioWave) currentTest.amplitudeDetectionThresholdsSquare.Add(new AmpDetSet(frequency, amp, answerCheck(order)));
+                    if (genie.useSawAudioWave) currentTest.amplitudeDetectionThresholdsSaw.Add(new AmpDetSet(frequency, amp, answerCheck(order)));
+                }
             }
         }
     }
 
     IEnumerator FrequencyDiscrimination() {
-        yield return null;
+        genie.loadPreset(resetPreset);
+        genie.useSinusAudioWave = true;
+        genie.sinusAudioWaveIntensity = 1;
+        yield return StartCoroutine(FrequencyDiscriminationSequence());
+
+        if (varySignal) {
+            genie.loadPreset(resetPreset);
+            genie.useSquareAudioWave = true;
+            genie.squareAudioWaveIntensity = 1;
+            yield return StartCoroutine(FrequencyDiscriminationSequence());
+
+            genie.loadPreset(resetPreset);
+            genie.useSawAudioWave = true;
+            genie.sawAudioWaveIntensity = 1;
+            yield return StartCoroutine(FrequencyDiscriminationSequence());
+        }
     }
     IEnumerator FrequencyDiscriminationSequence() {
-        yield return null;
+        Debug.Log("Prepping sequence");
+        System.Random rand = new System.Random();
+        //step
+        List<float> steps = new List<float>();
+        for (float step = FREQ_STEP_MIN; step <= FREQ_STEP_MAX; step += FREQ_STEP_SUBDIVISION) steps.Add(step); //generating test values
+        steps = steps.OrderBy(x => rand.Next()).ToList(); //randomizing order
+        //frequencies
+        List<float> frequencies = new List<float>();
+        for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
+        frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
+
+        //SEQUENCE
+        foreach (float frequency in frequencies) {
+            genie.mainFrequency = frequency;
+            foreach (float step in steps) {
+                bool order = Random.Range(0f, 1f) > 0.5f;
+
+                genie.masterVolume = 0;
+                yield return new WaitForSecondsRealtime(0.5f);//pause
+
+                genie.masterVolume = 1;
+                genie.masterVolume = order ? frequency+step : frequency;
+                yield return new WaitForSecondsRealtime(1); //T1
+
+                genie.masterVolume = 0;
+                yield return new WaitForSecondsRealtime(0.5f);//pause
+
+                genie.masterVolume = 1;
+                genie.masterVolume = order ? frequency : frequency+step;
+                yield return new WaitForSecondsRealtime(1); //T2
+
+                genie.masterVolume = 0;
+                askForAnswerFirstSecond("Which interval had the highest amplitude?");
+                yield return new WaitUntil(() => !wait); //wait for answer
+                //save
+                if (genie.useSinusAudioWave) currentTest.frequencyDiscriminationSine.Add(new FreqDisSet(frequency, step, answerCheck(order)));
+                if (genie.useSquareAudioWave) currentTest.frequencyDiscriminationSquare.Add(new FreqDisSet(frequency, step, answerCheck(order)));
+                if (genie.useSawAudioWave) currentTest.frequencyDiscriminationSaw.Add(new FreqDisSet(frequency, step, answerCheck(order)));
+            }
+        }
     }
+
 
     IEnumerator TemporalDiscrimination() {
         yield return null;
@@ -337,6 +421,10 @@ public class TestResults {
     public List<AmpDetSet> amplitudeDetectionThresholdsSine = new List<AmpDetSet>();
     public List<AmpDetSet> amplitudeDetectionThresholdsSquare = new List<AmpDetSet>();
     public List<AmpDetSet> amplitudeDetectionThresholdsSaw = new List<AmpDetSet>();
+
+    public List<FreqDisSet> frequencyDiscriminationSine = new List<FreqDisSet>();
+    public List<FreqDisSet> frequencyDiscriminationSquare = new List<FreqDisSet>();
+    public List<FreqDisSet> frequencyDiscriminationSaw = new List<FreqDisSet>();
 }
 
 public class AmpDetSet {
@@ -347,5 +435,16 @@ public class AmpDetSet {
     }
     public float frequency;
     public float amplitude;
+    public bool answer;
+}
+
+public class FreqDisSet {
+    public FreqDisSet(float frequency, float step, bool answer) {
+        this.frequency = frequency;
+        this.step = step;
+        this.answer = answer;
+    }
+    public float frequency;
+    public float step;
     public bool answer;
 }
