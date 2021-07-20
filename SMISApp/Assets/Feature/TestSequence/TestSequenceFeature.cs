@@ -48,13 +48,12 @@ public class TestSequenceFeature : MonoBehaviour{
     bool varySignal;
 
     const float AMP_SUBDIVISION = 0.02f;
-    const float AMP_MAX = 0.3f;
+    const float AMP_MAX = 0.2f;
     const float AMP_MIN = 0.0f;
-    const float DEFAULT_AMP = 0.15f;
 
-    const float FREQ_MIN = 30f;
+    const float FREQ_MIN = 40f;
     const float FREQ_MAX = 250f;
-    const float FREQ_SUBDIVISION = 10f;
+    const float FREQ_SUBDIVISION = 20f;
     const float DEFAULT_FREQUENCY = 100f;
 
     const float AMP_STEP_MIN = 0.1f;
@@ -62,8 +61,8 @@ public class TestSequenceFeature : MonoBehaviour{
     const float AMP_STEP_SUBDIVISION = 0.1f;
 
     const float FREQ_STEP_MIN = 0f;
-    const float FREQ_STEP_MAX = 50f;
-    const float FREQ_STEP_SUBDIVISION = 5f;
+    const float FREQ_STEP_MAX = 20f;
+    const float FREQ_STEP_SUBDIVISION = 4f;
 
     const float TEMP_STEP_MIN = 0f;
     const float TEMP_STEP_MAX = 1f;
@@ -110,6 +109,7 @@ public class TestSequenceFeature : MonoBehaviour{
         tempDisToggle.isOn = tempDis;
         varyFreqToggle.isOn = varyFreq;
         varySignalToggle.isOn = varySignal;
+        calcTime();
     }
 
     public void answerFirst() { answer = "First"; wait = false; }
@@ -153,6 +153,7 @@ public class TestSequenceFeature : MonoBehaviour{
     }
 
     void writeResults() {
+        //AmpDet
         if (currentTest.amplitudeDetectionThresholdsSine.Count > 0) {
             writeResultsTitle("Amplitude detection: Sine");
             SortedDictionary<float,float> results = currentTest.getAmpDetResults("sine");
@@ -168,6 +169,69 @@ public class TestSequenceFeature : MonoBehaviour{
             SortedDictionary<float, float> results = currentTest.getAmpDetResults("saw");
             foreach (float key in results.Keys) writeResultsLine("Threshold @ " + key + " Hz = " + results[key]);
         }
+        //AmpDis
+        if (currentTest.amplitudeDiscriminationSine.Count > 0) {
+            writeResultsTitle("Amplitude discrimination: Sine");
+            SortedDictionary<float, SortedDictionary<float, float>> results = currentTest.getAmpDisResults("sine");
+            foreach (float frequency in results.Keys) {
+                if (results[frequency].Count > 0) {
+                    writeResultsLine("Results @ " + frequency + " Hz = ");
+                    foreach(float amplitude in results[frequency].Keys) writeResultsLine("Resolution @ " + amplitude + " AMP = " + results[frequency][amplitude]);
+                }
+            }
+        }
+        if (currentTest.amplitudeDiscriminationSquare.Count > 0) {
+            writeResultsTitle("Amplitude discrimination: Square");
+            SortedDictionary<float, SortedDictionary<float, float>> results = currentTest.getAmpDisResults("square");
+            foreach (float frequency in results.Keys) {
+                if (results[frequency].Count > 0) {
+                    writeResultsLine("Results @ " + frequency + " Hz = ");
+                    foreach (float amplitude in results[frequency].Keys) writeResultsLine("Resolution @ " + amplitude + " AMP = " + results[frequency][amplitude]);
+                }
+            }
+        }
+        if (currentTest.amplitudeDiscriminationSaw.Count > 0) {
+            writeResultsTitle("Amplitude discrimination: saw");
+            SortedDictionary<float, SortedDictionary<float, float>> results = currentTest.getAmpDisResults("saw");
+            foreach (float frequency in results.Keys) {
+                if (results[frequency].Count > 0) {
+                    writeResultsLine("Results @ " + frequency + " Hz = ");
+                    foreach (float amplitude in results[frequency].Keys) writeResultsLine("Resolution @ " + amplitude + " AMP = " + results[frequency][amplitude]);
+                }
+            }
+        }
+        //FreqDis
+        if (currentTest.frequencyDiscriminationSine.Count > 0) {
+            writeResultsTitle("Frequency Discrimination: Sine");
+            SortedDictionary<float, float> results = currentTest.getFreqDisResults("sine");
+            foreach (float key in results.Keys) writeResultsLine("Resolution @ " + key + " Hz = " + results[key] + " AMP");
+        }
+        if (currentTest.frequencyDiscriminationSquare.Count > 0) {
+            writeResultsTitle("Frequency Discrimination: Square");
+            SortedDictionary<float, float> results = currentTest.getFreqDisResults("square");
+            foreach (float key in results.Keys) writeResultsLine("Resolution @ " + key + " Hz = " + results[key] + " AMP");
+        }
+        if (currentTest.frequencyDiscriminationSaw.Count > 0) {
+            writeResultsTitle("Frequency Discrimination: Saw");
+            SortedDictionary<float, float> results = currentTest.getFreqDisResults("saw");
+            foreach (float key in results.Keys) writeResultsLine("Resolution @ " + key + " Hz = " + results[key] + " AMP");
+        }
+        //TempDis
+        if (currentTest.temporalDiscriminationSine.Count > 0) {
+            writeResultsTitle("Temporal Discrimination: Sine");
+            SortedDictionary<float, float> results = currentTest.getFreqDisResults("sine");
+            foreach (float key in results.Keys) writeResultsLine("Resolution @ " + key + " Hz = " + results[key] + " sec");
+        }
+        if (currentTest.temporalDiscriminationSquare.Count > 0) {
+            writeResultsTitle("Temporal Discrimination: Square");
+            SortedDictionary<float, float> results = currentTest.getFreqDisResults("square");
+            foreach (float key in results.Keys) writeResultsLine("Resolution @ " + key + " Hz = " + results[key] + " sec");
+        }
+        if (currentTest.temporalDiscriminationSaw.Count > 0) {
+            writeResultsTitle("Temporal Discrimination: Saw");
+            SortedDictionary<float, float> results = currentTest.getFreqDisResults("saw");
+            foreach (float key in results.Keys) writeResultsLine("Resolution @ " + key + " Hz = " + results[key] + " sec");
+        }
     }
 
     void calcTime() {
@@ -176,7 +240,12 @@ public class TestSequenceFeature : MonoBehaviour{
         //for ampDetplusminus : ITERATIONS * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 3;
         if (ampDis) calculatedTime += ((AMP_STEP_MAX - AMP_STEP_MIN) / AMP_STEP_SUBDIVISION) * ((AMP_MAX - AMP_MIN) / AMP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * 4;
         if (freqDis) calculatedTime += ((FREQ_STEP_MAX - FREQ_STEP_MIN) / FREQ_STEP_SUBDIVISION) * ((FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION) * (varySignal ? 3 : 1) * 4;
-        estimatedTime.text = "Estimated test duration: " + Mathf.RoundToInt((calculatedTime/60f)*10f)/10f + " minutes";
+        if (tempDis) calculatedTime += ((TEMP_STEP_MAX - TEMP_STEP_MIN) / TEMP_STEP_SUBDIVISION) * (varyFreq ? (FREQ_MAX - FREQ_MIN) / FREQ_SUBDIVISION : 1) * (varySignal ? 3 : 1) * (4 + (FREQ_STEP_MIN + (FREQ_STEP_MAX - FREQ_STEP_MIN) / 2f));
+        float hours = calculatedTime / 3600f;
+        float seconds = calculatedTime % 60f;
+        float minutes = (calculatedTime % 3600f) / 60f;
+        
+        estimatedTime.text = "Estimated test duration: " + (hours >= 10 ? ""+(int)hours : "0"+(int)hours) + ":" + (minutes >= 10 ? "" + (int)minutes : "0" + (int)minutes) + ":" + (seconds >= 10 ? "" + (int)seconds : "0" + (int)seconds);
     }
 
     public void launch() {
@@ -255,6 +324,7 @@ public class TestSequenceFeature : MonoBehaviour{
             foreach (float amp in amps) {
                 bool order = Random.Range(0f, 1f) > 0.5f;
 
+                intervalNumber.text = "";
                 genie.masterVolume = 0;
                 yield return new WaitForSecondsRealtime(0.5f);//pause
 
@@ -311,14 +381,13 @@ public class TestSequenceFeature : MonoBehaviour{
         amps = amps.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //step
         List<float> steps = new List<float>();
-        for (float step = AMP_STEP_MIN; step <= AMP_STEP_MAX; step += AMP_STEP_SUBDIVISION) amps.Add(step); //generating test values
-        amps = amps.OrderBy(x => rand.Next()).ToList(); //randomizing order
+        for (float step = AMP_STEP_MIN; step <= AMP_STEP_MAX; step += AMP_STEP_SUBDIVISION) steps.Add(step); //generating test values
+        steps = steps.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //frequencies
         List<float> frequencies = new List<float>();
         if (varyFreq) for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
         else frequencies.Add(DEFAULT_FREQUENCY);
         frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
-
         //SEQUENCE
         foreach (float frequency in frequencies) {
             genie.mainFrequency = frequency;
@@ -326,6 +395,7 @@ public class TestSequenceFeature : MonoBehaviour{
                 foreach (float step in steps) {
                     bool order = Random.Range(0f, 1f) > 0.5f;
 
+                    intervalNumber.text = "";
                     genie.masterVolume = 0;
                     yield return new WaitForSecondsRealtime(0.5f);//pause
 
@@ -341,6 +411,7 @@ public class TestSequenceFeature : MonoBehaviour{
                     genie.masterVolume = order ? amp : amp + step;
                     yield return new WaitForSecondsRealtime(1); //T2
 
+                    intervalNumber.text = "";
                     genie.masterVolume = 0;
                     askForAnswerFirstSecond("Which interval had the highest amplitude?");
                     yield return new WaitUntil(() => !wait); //wait for answer
@@ -376,11 +447,11 @@ public class TestSequenceFeature : MonoBehaviour{
         System.Random rand = new System.Random();
         //step
         List<float> steps = new List<float>();
-        for (float step = FREQ_STEP_MIN; step <= FREQ_STEP_MAX; step += FREQ_STEP_SUBDIVISION) steps.Add(step); //generating test values
+        for (float step = FREQ_STEP_MIN; step <= FREQ_STEP_MAX; step += FREQ_STEP_SUBDIVISION) steps.Add(step);
         steps = steps.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //frequencies
         List<float> frequencies = new List<float>();
-        for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
+        for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); 
         frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
 
         //SEQUENCE
@@ -389,6 +460,7 @@ public class TestSequenceFeature : MonoBehaviour{
             foreach (float step in steps) {
                 bool order = Random.Range(0f, 1f) > 0.5f;
 
+                intervalNumber.text = "";
                 genie.masterVolume = 0;
                 yield return new WaitForSecondsRealtime(0.5f);//pause
 
@@ -406,6 +478,7 @@ public class TestSequenceFeature : MonoBehaviour{
                 genie.masterVolume = order ? frequency : frequency+step;
                 yield return new WaitForSecondsRealtime(1); //T2
 
+                intervalNumber.text = "";
                 genie.masterVolume = 0;
                 askForAnswerFirstSecond("Which interval had the highest amplitude?");
                 yield return new WaitUntil(() => !wait); //wait for answer
@@ -441,11 +514,12 @@ public class TestSequenceFeature : MonoBehaviour{
         System.Random rand = new System.Random();
         //step
         List<float> steps = new List<float>();
-        for (float step = FREQ_STEP_MIN; step <= FREQ_STEP_MAX; step += FREQ_STEP_SUBDIVISION) steps.Add(step); //generating test values
+        for (float step = TEMP_STEP_MIN; step <= TEMP_STEP_MAX; step += TEMP_STEP_SUBDIVISION) steps.Add(step); //generating test values
         steps = steps.OrderBy(x => rand.Next()).ToList(); //randomizing order
         //frequencies
         List<float> frequencies = new List<float>();
-        for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
+        if (varyFreq) for (float frequency = FREQ_MIN; frequency <= FREQ_MAX; frequency += FREQ_SUBDIVISION) frequencies.Add(frequency); //generating frequency steps
+        else frequencies.Add(DEFAULT_FREQUENCY);
         frequencies = frequencies.OrderBy(x => rand.Next()).ToList(); //randomizing order
 
         //SEQUENCE
@@ -454,6 +528,7 @@ public class TestSequenceFeature : MonoBehaviour{
                 genie.mainFrequency = frequency;
                 bool order = Random.Range(0f, 1f) > 0.5f;
 
+                intervalNumber.text = "";
                 genie.masterVolume = 0;
                 yield return new WaitForSecondsRealtime(0.5f);//pause
 
@@ -469,6 +544,7 @@ public class TestSequenceFeature : MonoBehaviour{
                 genie.masterVolume = 1;
                 yield return new WaitForSecondsRealtime(1f + (order ? 0f : step)); //T2
 
+                intervalNumber.text = "";
                 genie.masterVolume = 0;
                 askForAnswerFirstSecond("Which interval was the longest?");
                 yield return new WaitUntil(() => !wait); //wait for answer
@@ -508,7 +584,8 @@ public class TestResults {
     public List<SteppedSet> temporalDiscriminationSine = new List<SteppedSet>();
     public List<SteppedSet> temporalDiscriminationSquare = new List<SteppedSet>();
     public List<SteppedSet> temporalDiscriminationSaw = new List<SteppedSet>();
-
+                            
+                           //freq  threshold
     public SortedDictionary<float, float> getAmpDetResults(string signalType) {
         SortedDictionary<float, float> results = new SortedDictionary<float, float>();
         List<AmpDetSet> list = new List<AmpDetSet>();
@@ -525,7 +602,7 @@ public class TestResults {
         }
         return results;
     }
-
+                          //freq                 amplitude step
     public SortedDictionary<float, SortedDictionary<float, float>> getAmpDisResults(string signalType) {
         SortedDictionary<float, SortedDictionary<float, float>> results = new SortedDictionary<float, SortedDictionary<float, float>>();
         List<AmpDisSet> list = new List<AmpDisSet>();
@@ -548,7 +625,7 @@ public class TestResults {
         }
         return results;
     }
-
+                          //freq    step 
     public SortedDictionary<float, float> getFreqDisResults(string signalType) {
         SortedDictionary<float, float> results = new SortedDictionary<float, float>();
         List<SteppedSet> list = new List<SteppedSet>();
@@ -565,7 +642,7 @@ public class TestResults {
         }
         return results;
     }
-
+                          //freq    step
     public SortedDictionary<float, float> getTempDisResults(string signalType) {
         SortedDictionary<float, float> results = new SortedDictionary<float, float>();
         List<SteppedSet> list = new List<SteppedSet>();

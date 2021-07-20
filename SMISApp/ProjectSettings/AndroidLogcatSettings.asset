@@ -1,167 +1,47 @@
 {
     "m_SelectedDeviceId": "ZY227F7D3S",
     "m_SelectedPackage": {
-        "deviceId": "ZY227F7D3S",
-        "name": "com.AzUnity.com.SMISAPP",
-        "processId": 2723,
+        "deviceId": "",
+        "name": "",
+        "processId": 0,
         "exited": false
     },
     "m_SelectedPriority": 0,
     "m_KnownPackagesForSerialization": [
         {
             "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 20629,
-            "exited": true
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 25117,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 25523,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 26516,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 26847,
-            "exited": true
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 30883,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 31458,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 31924,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 1806,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 30727,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 15900,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 22453,
-            "exited": true
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 2381,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 3805,
-            "exited": true
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 21547,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.DefaultCompany.com.unity.template.mobile2D",
-            "processId": 24782,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 5315,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 21170,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 24647,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 26728,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 27361,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 29856,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
-            "name": "com.AzUnity.com.SMISAPP",
-            "processId": 31126,
-            "exited": false
-        },
-        {
-            "deviceId": "ZY227F7D3S",
             "name": "com.AzUnity.com.SMISAPP",
             "processId": 1238,
-            "exited": false
+            "exited": true
         },
         {
             "deviceId": "ZY227F7D3S",
             "name": "com.AzUnity.com.SMISAPP",
             "processId": 1904,
-            "exited": false
+            "exited": true
         },
         {
             "deviceId": "ZY227F7D3S",
             "name": "com.AzUnity.com.SMISAPP",
             "processId": 2723,
+            "exited": true
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 10517,
+            "exited": true
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 18919,
+            "exited": true
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.teslacoilsw.launcher",
+            "processId": 8118,
             "exited": false
         }
     ],
