@@ -1,9 +1,9 @@
 {
     "m_SelectedDeviceId": "ZY227F7D3S",
     "m_SelectedPackage": {
-        "deviceId": "",
-        "name": "",
-        "processId": 0,
+        "deviceId": "ZY227F7D3S",
+        "name": "com.AzUnity.com.SMISAPP",
+        "processId": 6371,
         "exited": false
     },
     "m_SelectedPriority": 0,
@@ -42,6 +42,36 @@
             "deviceId": "ZY227F7D3S",
             "name": "com.teslacoilsw.launcher",
             "processId": 8118,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 3310,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 4305,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 4639,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 5911,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 6371,
             "exited": false
         }
     ],
