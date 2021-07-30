@@ -8679,7 +8679,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e7024494f0e230449a514d34955174fd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3c82705279c442f42a93a299a2c49482, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -16512,7 +16512,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.7490196}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -21781,6 +21781,10 @@ PrefabInstance:
       propertyPath: comingSoonAlert
       value: 
       objectReference: {fileID: 1482467777}
+    - target: {fileID: 629300391966671143, guid: 97f689e8ed52acc4c8b296852f062f53, type: 3}
+      propertyPath: allowed.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 629300391966671143, guid: 97f689e8ed52acc4c8b296852f062f53, type: 3}
       propertyPath: prefered.Array.size
       value: 2
