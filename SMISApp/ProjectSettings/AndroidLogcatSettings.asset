@@ -3,7 +3,7 @@
     "m_SelectedPackage": {
         "deviceId": "ZY227F7D3S",
         "name": "com.AzUnity.com.SMISAPP",
-        "processId": 6371,
+        "processId": 26039,
         "exited": false
     },
     "m_SelectedPriority": 0,
@@ -72,6 +72,18 @@
             "deviceId": "ZY227F7D3S",
             "name": "com.AzUnity.com.SMISAPP",
             "processId": 6371,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 23196,
+            "exited": false
+        },
+        {
+            "deviceId": "ZY227F7D3S",
+            "name": "com.AzUnity.com.SMISAPP",
+            "processId": 26039,
             "exited": false
         }
     ],

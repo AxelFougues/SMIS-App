@@ -30,6 +30,8 @@ public class SignalGeneratorFeature : MonoBehaviour{
     public GameObject freqMod;
     public GameObject ampMod;
 
+    public GameObject EQRow;
+
     public AnimationCurve eq = new AnimationCurve();
 
     GameObject audioOut;
@@ -42,11 +44,7 @@ public class SignalGeneratorFeature : MonoBehaviour{
     List<TMP_Text> eqNotes;
 
     private void Start() {
-        eqValues = eqContainer.GetComponentsInChildren<Slider>().ToList();
-        eqNotes = eqContainer.GetComponentsInChildren<TMP_Text>().ToList();
-        for (float i = 0f; i <= 1f; i += 1f/eqValues.Count) eq.AddKey(i, 1f);
 
-        Debug.Log(eqValues.Count);
         Events.current.onSettingsChanged += onSettingsChanged;
         Events.current.onThemeChanged += onThemeChanged;
 
@@ -55,6 +53,8 @@ public class SignalGeneratorFeature : MonoBehaviour{
         left = audioOut.GetComponents<SignalGenerator>()[0];
         right = audioOut.GetComponents<SignalGenerator>()[1];
         stereo = audioOut.GetComponents<SignalGenerator>()[2];
+
+        refreshEQ();
 
         reset();
     }
@@ -66,9 +66,8 @@ public class SignalGeneratorFeature : MonoBehaviour{
         left.mainFrequency = Global.current.settings.minFrequency;
         right.mainFrequency = Global.current.settings.minFrequency;
         stereo.mainFrequency = Global.current.settings.minFrequency;
-        resetStereo();
         playToggle.isOn = false;
-        updateVisuals();
+        resetStereo();
     }
 
     public void updateVisuals() {
@@ -201,18 +200,33 @@ public class SignalGeneratorFeature : MonoBehaviour{
         current.sawAudioWaveIntensity = SawSlider.value;
     }
 
-    public void changeEQ() {
-        for (int i = 0; i < eq.length; i++) eq.MoveKey(i, new Keyframe(eq[i].time, eqValues[i].value));
+    public void changeEQ(float e) {
+        for (int i = 0; i < Global.current.settings.EQSteps; i++) eq.MoveKey(i, new Keyframe(eq[i].time, eqValues[i].value));
         useEQ();
     }
 
     public void updateEQVisuals() {  
-        for (int i = 0; i < eq.length; i++) eqValues[i].value = eq[i].value;
-        for (int i = 0; i < eq.length; i++) eqNotes[i].text = ""+ (int)mapValue(eq[i].time, 0, 1, Global.current.settings.minFrequency, Global.current.settings.maxFrequency);
+        for (int i = 0; i < Global.current.settings.EQSteps; i++) eqValues[i].value = eq[i].value;
+        for (int i = 0; i < Global.current.settings.EQSteps; i++) eqNotes[i].text = ""+ (int)mapValue(eq[i].time, 0, 1, Global.current.settings.minFrequency, Global.current.settings.maxFrequency);
     }
 
     public void useEQ() {
         current.masterVolume = eq.Evaluate(mapValue((float)current.mainFrequency, Global.current.settings.minFrequency, Global.current.settings.maxFrequency, 0, 1));
+    }
+
+    public void refreshEQ() {
+        while(eqContainer.transform.childCount > 0) GameObject.DestroyImmediate(eqContainer.transform.GetChild(0).gameObject);
+        Debug.Log(eqContainer.transform.childCount);
+        for (int i = 0; i < Global.current.settings.EQSteps; i++) {
+            GameObject row = Instantiate(EQRow, eqContainer.transform);
+            Slider s = row.GetComponentInChildren<Slider>();
+            s.onValueChanged.AddListener(changeEQ);
+        }
+        eqValues = eqContainer.GetComponentsInChildren<Slider>().ToList();
+        eqNotes = eqContainer.GetComponentsInChildren<TMP_Text>().ToList();
+        Debug.Log(eqContainer.transform.childCount);
+        eq = new AnimationCurve();
+        for (float i = 0f; i <= 1f; i += 1f / Global.current.settings.EQSteps) eq.AddKey(i, 1f);
     }
 
 
@@ -260,6 +274,7 @@ public class SignalGeneratorFeature : MonoBehaviour{
     protected void onSettingsChanged() {
         if(!isBetween((float)left.mainFrequency, Global.current.settings.minFrequency, Global.current.settings.maxFrequency)) left.mainFrequency = Global.current.settings.minFrequency;
         if (!isBetween((float)right.mainFrequency, Global.current.settings.minFrequency, Global.current.settings.maxFrequency)) right.mainFrequency = Global.current.settings.minFrequency;
+        refreshEQ();
         updateVisuals();
     }
 

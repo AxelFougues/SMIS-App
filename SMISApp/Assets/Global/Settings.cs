@@ -11,4 +11,6 @@ public class Settings : ScriptableObject{
 
     public float minFrequency = 40f;
 
+    public int EQSteps = 10;
+
 }

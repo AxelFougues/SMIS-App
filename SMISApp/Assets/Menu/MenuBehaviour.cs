@@ -5,22 +5,25 @@ using UnityEngine.UI;
 
 public class MenuBehaviour : MonoBehaviour{
 
+    public Animator retractionButtonAnimator;
     Animator animator;
-    public Button retractButton;
+    public Image retractButton;
 
     private void Start() {
         animator = GetComponent<Animator>();
-        retractButton.gameObject.SetActive(false);
+        retractButton.raycastTarget = false;
     }
 
     public void menuIn() {
+        retractButton.raycastTarget = true;
+        retractionButtonAnimator.SetTrigger("FadeIn");
         animator.SetTrigger("menuIn");
-        retractButton.gameObject.SetActive(true);
     }
 
     public void menuOut() {
+        retractButton.raycastTarget = false;
+        retractionButtonAnimator.SetTrigger("FadeOut");
         animator.SetTrigger("menuOut");
-        retractButton.gameObject.SetActive(false);
     }
 
     public void closeAll() {

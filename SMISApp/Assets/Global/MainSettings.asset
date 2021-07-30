@@ -12,4 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c3f7d5defaa5e14bb0ae5dd25cded5e, type: 3}
   m_Name: MainSettings
   m_EditorClassIdentifier: 
-  deviceCompatibilityWarning: 0
+  bypassDeviceCompatibilityWarning: 1
+  maxFrequency: 400
+  minFrequency: 1
+  EQSteps: 6
